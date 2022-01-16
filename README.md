@@ -1,4 +1,4 @@
-#🍎To Do List
+# 🍎 To Do List
 
 1.jQuery 선택자 사용 연습
 2.로컬저장소에 저장 후 할일, 완료한일 나누어 출력
