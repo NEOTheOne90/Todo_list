@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <title>TO DO LIST</title>
+    <link rel="shortcut icon" href="" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">  
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.2/css/all.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <input type="text" class="txtb" placeholder="할일을 적어요">
+      <div class="todo">
+        <h3>오늘의 할일</h3>
+      </div>
+
+      <div class="comp">
+        <h3>완료 목록</h3>
+      </div>
+    </div>
+
+    <script>
+      // 추가할 div 태그들 정의 const는 상수 변하지 않음
+      const task = "<div class='task'></div>";
+      const del = "<i class='fas fa-trash-alt'></i>";
+      const check = "<i class='fas fa-check'></i>";
+      
+      var LIST; //할일들을 저장변수
+
+      // html 문서 로드후
+      $(document).ready(function(){
+        //로컬저장소에서 'todos' 불러옴
+        loadLS();
+        //키 입력시
+        $(".txtb").on("keyup",inputTask);
+        //  클릭 이벤트 : 해야할일이나 완료된일을 클릭시
+        $(".todo, .comp").click(iconClick);
+      });
+
+      function loadLS(){
+        // 앱 시작시 로컬저장소의 todos에 저장된 배열을 가져옴
+        // 배열안의 요소는 객체 형식으로 { name: '문자열' , done : boolean(true or false) }
+        //console.log(localStorage.getItem("todos"));
+        if(localStorage.getItem("todos") === null) {
+          LIST = [];
+        } else {
+          LIST = JSON.parse(localStorage.getItem("todos"));
+        }
+        LIST.forEach(function(item){
+          //리스트 아이템의 done이 true면 .comp에 태스크 추가
+          if(item.done === false){ //item.done 
+            $(".todo").append(task); //todo에 추가
+            $(".todo .task:last").text(item.name); 
+            $(".todo .task:last").append(del,check);
+          } else {
+            $(".comp").append(task); //comp에 추가
+            $(".comp .task:last").text(item.name); 
+            $(".comp .task:last").append(del,check); 
+          }
+        });
+
+      }
+
+
+      function saveToLS(task, bool){ //로컬저장소에서 할일 저장
+        
+        LIST.push({
+          name: task,
+          done: bool
+        });
+        localStorage.setItem("todos", JSON.stringify(LIST));
+      }  
+
+
+       
+      function inputTask(e){
+        var txt = $(".txtb").val();  // 입력값을 txt에 저장
+        //13은 엔터 && 입력값이 있을때
+        if(e.keyCode == 13 && txt != "")
+        {
+          $(".todo").append(task); //todo 자식 맨밑에 추가
+          $(".todo .task:last").text(txt); //text 추가
+          $(".todo .task:last").append(del,check);
+
+          saveToLS(txt,false); // 로컬저장소에 저장  
+
+          $(".txtb").val(""); //인풋 창 클리어
+          
+        }
+      }
+
+      
+      function iconClick(e){
+        // console.log(e.target)
+        var target = $(e.target); 
+        if(target.is("i.fa-trash-alt")){//클릭한곳이 휴지통아이콘
+          var delItem = target.parent();//클릭한 아이콘의 부모태그
+          delItem.fadeOut(function(){//페이드아웃 효과
+            delItem.remove();
+            delFromLS(delItem.text()); //삭제하기
+          })
+        } else if(target.is("i.fa-check")){//클릭한곳이 체크아이콘
+          if(target.parent().parent().is("div.comp")) return;
+          var compItem = target.parent();//클릭한 아이콘의 부모태그
+          compItem.fadeOut(function(){//페이드아웃
+            $('.comp').append(compItem); //완료리스트로 이동
+            compItem.attr("done", "true")
+            compItem.fadeIn(); //페이드인
+            saveDone(compItem.text());//변경 저장
+          });
+        }
+      }
+
+      function delFromLS(text){
+        LIST.forEach(function(task, index){
+          if(task.name === text){
+            LIST.splice(index, 1);
+          }
+        });
+        localStorage.setItem("todos", JSON.stringify(LIST));
+      }
+
+      function saveDone(text){
+        LIST.forEach(function(task, index){
+          if(task.name === text){
+            task.done = true;
+          }
+        });
+        localStorage.setItem("todos", JSON.stringify(LIST));     
+      }
+
+    </script>
+
+  </body>
+</html>
